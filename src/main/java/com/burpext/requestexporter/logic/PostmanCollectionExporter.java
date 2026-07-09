@@ -22,7 +22,8 @@ public final class PostmanCollectionExporter {
     private PostmanCollectionExporter() {
     }
 
-    public static void export(java.util.List<HttpRequestResponse> selected, File outFile) throws IOException {
+    public static void export(java.util.List<HttpRequestResponse> selected, java.util.List<Integer> requestIndices,
+                               File outFile) throws IOException {
         ObjectNode collection = MAPPER.createObjectNode();
 
         ObjectNode info = collection.putObject("info");
@@ -31,8 +32,8 @@ public final class PostmanCollectionExporter {
         info.put("schema", "https://schema.getpostman.com/json/collection/v2.1.0/collection.json");
 
         ArrayNode items = collection.putArray("item");
-        for (int i = 0; i < selected.size(); i++) {
-            items.add(requestToItem(selected.get(i), i + 1));
+        for (int i : SelectionOrdering.byAscendingIndex(requestIndices)) {
+            items.add(requestToItem(selected.get(i), requestIndices.get(i)));
         }
 
         MAPPER.writerWithDefaultPrettyPrinter().writeValue(outFile, collection);

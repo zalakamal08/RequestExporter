@@ -8,6 +8,7 @@ import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 import com.burpext.requestexporter.logic.ClipboardExporter;
 import com.burpext.requestexporter.logic.PostmanCollectionExporter;
+import com.burpext.requestexporter.logic.RequestIndexResolver;
 
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
@@ -51,13 +52,15 @@ public class RequestExporter implements BurpExtension {
             return List.of();
         }
 
+        List<Integer> requestIndices = RequestIndexResolver.resolve(api, event.toolType(), selected);
+
         JMenu menu = new JMenu("Request Exporter");
 
         JMenuItem copyItem = new JMenuItem("Copy to Clipboard");
-        copyItem.addActionListener(e -> copyToClipboard(selected));
+        copyItem.addActionListener(e -> copyToClipboard(selected, requestIndices));
 
         JMenuItem postmanItem = new JMenuItem("Create Postman Collection");
-        postmanItem.addActionListener(e -> exportToPostman(selected));
+        postmanItem.addActionListener(e -> exportToPostman(selected, requestIndices));
 
         menu.add(copyItem);
         menu.add(postmanItem);
@@ -65,8 +68,6 @@ public class RequestExporter implements BurpExtension {
     }
 
     /**
-     * selectedRequestResponses() reflects the order Burp displays entries in the
-     * source table (Proxy history / Repeater tab list), which is already ascending.
      * Falls back to the single message-editor selection when no list selection exists.
      */
     private List<HttpRequestResponse> collectSelection(ContextMenuEvent event) {
@@ -79,16 +80,16 @@ public class RequestExporter implements BurpExtension {
         return single;
     }
 
-    private void copyToClipboard(List<HttpRequestResponse> selected) {
+    private void copyToClipboard(List<HttpRequestResponse> selected, List<Integer> requestIndices) {
         try {
-            ClipboardExporter.copyToClipboard(selected);
+            ClipboardExporter.copyToClipboard(selected, requestIndices);
             api.logging().logToOutput("Copied " + selected.size() + " request(s) to clipboard.");
         } catch (Exception ex) {
             api.logging().logToError("Failed to copy to clipboard: " + ex.getMessage());
         }
     }
 
-    private void exportToPostman(List<HttpRequestResponse> selected) {
+    private void exportToPostman(List<HttpRequestResponse> selected, List<Integer> requestIndices) {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Save Postman Collection");
         chooser.setSelectedFile(new File("RequestExporter-collection.json"));
@@ -103,7 +104,7 @@ public class RequestExporter implements BurpExtension {
         }
 
         try {
-            PostmanCollectionExporter.export(selected, outFile);
+            PostmanCollectionExporter.export(selected, requestIndices, outFile);
             api.logging().logToOutput("Postman collection saved to " + outFile.getAbsolutePath());
             JOptionPane.showMessageDialog(null, "Postman collection saved:\n" + outFile.getAbsolutePath());
         } catch (Exception ex) {

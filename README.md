@@ -13,6 +13,11 @@ Select one or more entries in Proxy history or Repeater, right-click, and choose
 - **Create Postman Collection** — generates a Postman Collection v2.1 JSON file containing all selected requests,
   ready for import into Postman.
 
+For Proxy selections, `N` is Burp's own **"#"** row number from the HTTP history table (recovered by matching
+raw request bytes against `api.proxy().history()`, since the Montoya API doesn't expose that number directly on
+a selected item). Repeater has no equivalent history/index API, so its entries fall back to their ordinal
+position within the current selection.
+
 ## Installation
 
 1. Download `RequestExporter.jar` from the [Releases](../../releases) page or the latest

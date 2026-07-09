@@ -9,22 +9,23 @@ import java.util.List;
 
 /**
  * Formats selected requests/responses as plain text and copies them to the
- * system clipboard, one "Request Index: N" block per entry in the order the
- * selection was supplied (already ascending, per Burp's table/tab order).
+ * system clipboard, one "Request Index: N" block per entry, in ascending
+ * order of that index (see RequestIndexResolver for how N is derived).
  */
 public final class ClipboardExporter {
 
     private ClipboardExporter() {
     }
 
-    public static void copyToClipboard(List<HttpRequestResponse> selected) {
+    public static void copyToClipboard(List<HttpRequestResponse> selected, List<Integer> requestIndices) {
+        List<Integer> sortOrder = SelectionOrdering.byAscendingIndex(requestIndices);
+
         StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < selected.size(); i++) {
+        for (int pos = 0; pos < sortOrder.size(); pos++) {
+            int i = sortOrder.get(pos);
             HttpRequestResponse rr = selected.get(i);
-            int requestIndex = i + 1;
 
-            sb.append("Request Index: ").append(requestIndex).append("\n\n");
+            sb.append("Request Index: ").append(requestIndices.get(i)).append("\n\n");
 
             sb.append("Request\n");
             sb.append(rr.request() != null ? rr.request().toString() : "");
@@ -33,7 +34,7 @@ public final class ClipboardExporter {
             sb.append("Response\n");
             sb.append(rr.hasResponse() ? rr.response().toString() : "");
 
-            if (i < selected.size() - 1) {
+            if (pos < sortOrder.size() - 1) {
                 sb.append("\n\n").append("=".repeat(60)).append("\n\n");
             }
         }
