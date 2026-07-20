@@ -18,6 +18,11 @@ public final class ClipboardExporter {
     }
 
     public static void copyToClipboard(List<HttpRequestResponse> selected, List<Integer> requestIndices) {
+        copyToClipboard(selected, requestIndices, true);
+    }
+
+    public static void copyToClipboard(List<HttpRequestResponse> selected, List<Integer> requestIndices,
+                                        boolean includeResponse) {
         List<Integer> sortOrder = SelectionOrdering.byAscendingIndex(requestIndices);
 
         StringBuilder sb = new StringBuilder();
@@ -29,10 +34,12 @@ public final class ClipboardExporter {
 
             sb.append("Request\n");
             sb.append(rr.request() != null ? rr.request().toString() : "");
-            sb.append("\n\n");
 
-            sb.append("Response\n");
-            sb.append(rr.hasResponse() ? rr.response().toString() : "");
+            if (includeResponse) {
+                sb.append("\n\n");
+                sb.append("Response\n");
+                sb.append(rr.hasResponse() ? rr.response().toString() : "");
+            }
 
             if (pos < sortOrder.size() - 1) {
                 sb.append("\n\n").append("=".repeat(60)).append("\n\n");

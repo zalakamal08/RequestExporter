@@ -56,13 +56,17 @@ public class RequestExporter implements BurpExtension {
 
         JMenu menu = new JMenu("Request Exporter");
 
-        JMenuItem copyItem = new JMenuItem("Copy to Clipboard");
-        copyItem.addActionListener(e -> copyToClipboard(selected, requestIndices));
+        JMenuItem copyRequestItem = new JMenuItem("Copy Request Only");
+        copyRequestItem.addActionListener(e -> copyToClipboard(selected, requestIndices, false));
+
+        JMenuItem copyRequestResponseItem = new JMenuItem("Copy Request & Response");
+        copyRequestResponseItem.addActionListener(e -> copyToClipboard(selected, requestIndices, true));
 
         JMenuItem postmanItem = new JMenuItem("Create Postman Collection");
         postmanItem.addActionListener(e -> exportToPostman(selected, requestIndices));
 
-        menu.add(copyItem);
+        menu.add(copyRequestItem);
+        menu.add(copyRequestResponseItem);
         menu.add(postmanItem);
         return List.of(menu);
     }
@@ -80,9 +84,9 @@ public class RequestExporter implements BurpExtension {
         return single;
     }
 
-    private void copyToClipboard(List<HttpRequestResponse> selected, List<Integer> requestIndices) {
+    private void copyToClipboard(List<HttpRequestResponse> selected, List<Integer> requestIndices, boolean includeResponse) {
         try {
-            ClipboardExporter.copyToClipboard(selected, requestIndices);
+            ClipboardExporter.copyToClipboard(selected, requestIndices, includeResponse);
             api.logging().logToOutput("Copied " + selected.size() + " request(s) to clipboard.");
         } catch (Exception ex) {
             api.logging().logToError("Failed to copy to clipboard: " + ex.getMessage());

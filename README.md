@@ -6,10 +6,11 @@ requests/responses to the clipboard or a Postman collection.
 
 ## Features
 
-Select one or more entries in Proxy history or Repeater, right-click, and choose **Request Exporter** for two options:
+Select one or more entries in Proxy history or Repeater, right-click, and choose **Request Exporter** for three options:
 
-- **Copy to Clipboard** — exports the selected items in ascending order of their request index, formatting each
-  entry as `Request Index: N` followed by the corresponding **Request** and **Response**.
+- **Copy Request Only** — exports the selected items in ascending order of their request index, formatting each
+  entry as `Request Index: N` followed by the corresponding **Request** (no response).
+- **Copy Request & Response** — same as above, but also includes the corresponding **Response**.
 - **Create Postman Collection** — generates a Postman Collection v2.1 JSON file containing all selected requests,
   ready for import into Postman.
 
