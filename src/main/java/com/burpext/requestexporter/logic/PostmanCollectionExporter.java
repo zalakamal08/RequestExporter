@@ -3,6 +3,7 @@ package com.burpext.requestexporter.logic;
 import burp.api.montoya.http.message.HttpHeader;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
+import burp.api.montoya.http.message.responses.HttpResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -24,6 +25,11 @@ public final class PostmanCollectionExporter {
 
     public static void export(java.util.List<HttpRequestResponse> selected, java.util.List<Integer> requestIndices,
                                File outFile) throws IOException {
+        export(selected, requestIndices, outFile, false);
+    }
+
+    public static void export(java.util.List<HttpRequestResponse> selected, java.util.List<Integer> requestIndices,
+                               File outFile, boolean includeResponse) throws IOException {
         ObjectNode collection = MAPPER.createObjectNode();
 
         ObjectNode info = collection.putObject("info");
@@ -33,13 +39,13 @@ public final class PostmanCollectionExporter {
 
         ArrayNode items = collection.putArray("item");
         for (int i : SelectionOrdering.byAscendingIndex(requestIndices)) {
-            items.add(requestToItem(selected.get(i), requestIndices.get(i)));
+            items.add(requestToItem(selected.get(i), requestIndices.get(i), includeResponse));
         }
 
         MAPPER.writerWithDefaultPrettyPrinter().writeValue(outFile, collection);
     }
 
-    private static ObjectNode requestToItem(HttpRequestResponse rr, int requestIndex) {
+    private static ObjectNode requestToItem(HttpRequestResponse rr, int requestIndex, boolean includeResponse) {
         HttpRequest req = rr.request();
 
         ObjectNode item = MAPPER.createObjectNode();
@@ -64,7 +70,32 @@ public final class PostmanCollectionExporter {
         }
 
         request.set("url", urlToJson(req));
+
+        if (includeResponse && rr.hasResponse()) {
+            ArrayNode responses = item.putArray("response");
+            responses.add(responseToJson(rr.response(), request));
+        }
+
         return item;
+    }
+
+    private static ObjectNode responseToJson(HttpResponse resp, ObjectNode originalRequest) {
+        ObjectNode response = MAPPER.createObjectNode();
+        response.put("name", "Response");
+        response.put("status", resp.reasonPhrase());
+        response.put("code", resp.statusCode());
+
+        ArrayNode headers = response.putArray("header");
+        for (HttpHeader h : resp.headers()) {
+            if ("content-length".equalsIgnoreCase(h.name())) continue;
+            ObjectNode header = headers.addObject();
+            header.put("key", h.name());
+            header.put("value", h.value());
+        }
+
+        response.put("body", resp.bodyToString());
+        response.set("originalRequest", originalRequest);
+        return response;
     }
 
     private static ObjectNode urlToJson(HttpRequest req) {

@@ -85,6 +85,16 @@ jobs:
             ### What's included
             - `RequestExporter.jar` — Fat JAR built with Java 17 & Maven Shade Plugin.
 
+            ### What's new
+            - New **Request Exporter** suite tab: pick any host seen in Proxy HTTP
+              history and export every captured request for that host to a single
+              Postman collection, with an option to include responses.
+            - Context menu (Proxy & Repeater) now offers separate Postman export
+              options: **Create Postman Collection (Request Only)** and
+              **Create Postman Collection (Request & Response)**.
+            - Postman collections can now embed the response (status, headers, body)
+              alongside each request.
+
             ### Installation
             1. Open Burp Suite → **Extensions** → **Add**
             2. Select *Extension Type*: **Java**
@@ -92,9 +102,10 @@ jobs:
             4. Click **Next** — the extension will load automatically.
 
             ### Usage
-            In the Proxy or Repeater tab, select one or more requests, right-click,
-            and choose **Request Exporter** → **Copy to Clipboard** or
-            **Create Postman Collection**.
+            - In the Proxy or Repeater tab, select one or more requests, right-click,
+              and choose **Request Exporter** → a clipboard or Postman export option.
+            - Or open the **Request Exporter** suite tab to bulk-export all requests
+              for a chosen host straight to a Postman collection.
           files: dist/RequestExporter.jar
           draft: false
           prerelease: false

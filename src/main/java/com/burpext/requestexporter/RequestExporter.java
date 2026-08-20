@@ -9,6 +9,7 @@ import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 import com.burpext.requestexporter.logic.ClipboardExporter;
 import com.burpext.requestexporter.logic.PostmanCollectionExporter;
 import com.burpext.requestexporter.logic.RequestIndexResolver;
+import com.burpext.requestexporter.ui.RequestExporterTab;
 
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
@@ -40,6 +41,9 @@ public class RequestExporter implements BurpExtension {
                 return buildMenu(event);
             }
         });
+
+        javax.swing.SwingUtilities.invokeLater(() ->
+                api.userInterface().registerSuiteTab("Request Exporter", new RequestExporterTab(api)));
     }
 
     private List<Component> buildMenu(ContextMenuEvent event) {
@@ -62,12 +66,16 @@ public class RequestExporter implements BurpExtension {
         JMenuItem copyRequestResponseItem = new JMenuItem("Copy Request & Response");
         copyRequestResponseItem.addActionListener(e -> copyToClipboard(selected, requestIndices, true));
 
-        JMenuItem postmanItem = new JMenuItem("Create Postman Collection");
-        postmanItem.addActionListener(e -> exportToPostman(selected, requestIndices));
+        JMenuItem postmanItem = new JMenuItem("Create Postman Collection (Request Only)");
+        postmanItem.addActionListener(e -> exportToPostman(selected, requestIndices, false));
+
+        JMenuItem postmanWithResponseItem = new JMenuItem("Create Postman Collection (Request & Response)");
+        postmanWithResponseItem.addActionListener(e -> exportToPostman(selected, requestIndices, true));
 
         menu.add(copyRequestItem);
         menu.add(copyRequestResponseItem);
         menu.add(postmanItem);
+        menu.add(postmanWithResponseItem);
         return List.of(menu);
     }
 
@@ -93,7 +101,7 @@ public class RequestExporter implements BurpExtension {
         }
     }
 
-    private void exportToPostman(List<HttpRequestResponse> selected, List<Integer> requestIndices) {
+    private void exportToPostman(List<HttpRequestResponse> selected, List<Integer> requestIndices, boolean includeResponse) {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Save Postman Collection");
         chooser.setSelectedFile(new File("RequestExporter-collection.json"));
@@ -108,7 +116,7 @@ public class RequestExporter implements BurpExtension {
         }
 
         try {
-            PostmanCollectionExporter.export(selected, requestIndices, outFile);
+            PostmanCollectionExporter.export(selected, requestIndices, outFile, includeResponse);
             api.logging().logToOutput("Postman collection saved to " + outFile.getAbsolutePath());
             JOptionPane.showMessageDialog(null, "Postman collection saved:\n" + outFile.getAbsolutePath());
         } catch (Exception ex) {
